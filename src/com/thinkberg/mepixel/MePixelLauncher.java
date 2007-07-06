@@ -16,6 +16,10 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
+ * Launcher class for the MePixel Application. This launcher ensures that quicktime is in the
+ * class path by checking well known locations for QTJava.zip and adding it to a special
+ * class loader used to load the actual code.
+ *
  * @author Matthias L. Jugel
  */
 public class MePixelLauncher {
@@ -29,13 +33,6 @@ public class MePixelLauncher {
 
     System.err.println("MePixelLauncher (c) 2007 Matthias L. Jugel. All Rights Reserved.");
     System.err.println("++ Checking Quicktime installation ...");
-    ClassLoader parentClassLoader = Thread.currentThread().getContextClassLoader();
-    if (null == parentClassLoader) {
-      parentClassLoader = MePixel.class.getClassLoader();
-    }
-    if (null == parentClassLoader) {
-      parentClassLoader = ClassLoader.getSystemClassLoader();
-    }
 
     List<URL> classPath = new ArrayList<URL>();
     classPath.add(MePixel.class.getProtectionDomain().getCodeSource().getLocation());
@@ -50,8 +47,7 @@ public class MePixelLauncher {
         }
       }
     }
-    URLClassLoader classLoader = new URLClassLoader(classPath.toArray(new URL[0]),
-                                                    null);
+    URLClassLoader classLoader = new URLClassLoader(classPath.toArray(new URL[0]), ClassLoader.getSystemClassLoader());
     Thread.currentThread().setContextClassLoader(classLoader);
 
     // for the sake of Java Web Start it is necessary to uninstall the security manager
@@ -67,8 +63,8 @@ public class MePixelLauncher {
     }
 
     System.err.println();
-    // load and start main class
     try {
+      // load and start main class
       Class mainClass = classLoader.loadClass("com.thinkberg.mepixel.MePixel");
       final Constructor mainContructor = mainClass.getConstructor(String[].class);
       mainContructor.newInstance(new Object[]{args});

@@ -7,18 +7,19 @@ package com.thinkberg.mepixel;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.KeyListener;
-import java.awt.event.KeyEvent;
 
 /**
+ * A simple display that does some backing store based painting. It is fullscreen and without
+ * a window.
+ *
  * @author Matthias L. Jugel
  */
-public class CharDisplay extends JFrame {
+public class BufferedDisplay extends JFrame {
   private Image backingStore;
   private int xOffset;
   private int yOffset;
 
-  public CharDisplay() {
+  public BufferedDisplay() {
     super();
 
     setUndecorated(true);

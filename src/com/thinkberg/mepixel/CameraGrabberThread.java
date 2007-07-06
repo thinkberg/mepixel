@@ -9,23 +9,19 @@ import quicktime.QTException;
 import quicktime.QTRuntimeException;
 import quicktime.QTRuntimeHandler;
 import quicktime.QTSession;
-import quicktime.io.QTFile;
-import quicktime.io.OpenMovieFile;
 import quicktime.qd.PixMap;
+import quicktime.qd.QDConstants;
 import quicktime.qd.QDGraphics;
 import quicktime.qd.QDRect;
-import quicktime.qd.QDConstants;
 import quicktime.std.StdQTConstants;
-import quicktime.std.movies.Movie;
 import quicktime.std.sg.SGVideoChannel;
 import quicktime.std.sg.SequenceGrabber;
 import quicktime.util.RawEncodedImage;
 
-import java.awt.image.BufferedImage;
-import java.awt.image.WritableRaster;
-import java.io.File;
-
 /**
+ * This thread is solely responsible for getting images from a sequence grabber and copying
+ * them into a pixel data array. Uses Quicktime to get the images by doing some fake recording.
+ *
  * @author Matthias L. Jugel
  */
 public class CameraGrabberThread extends Thread {
@@ -61,9 +57,9 @@ public class CameraGrabberThread extends Thread {
     channel.setUsage(StdQTConstants.seqGrabPreview);
     grabber.prepare(true, false);
 
-		grabber.setDataOutput( null, StdQTConstants.seqGrabDontMakeMovie);
-		grabber.prepare(true, true);
-		grabber.startRecord();
+    grabber.setDataOutput(null, StdQTConstants.seqGrabDontMakeMovie);
+    grabber.prepare(true, true);
+    grabber.startRecord();
 
     PixMap pixMap = graphics.getPixMap();
     rowEncodedImage = pixMap.getPixelData();
@@ -73,7 +69,8 @@ public class CameraGrabberThread extends Thread {
       public void exceptionOccurred(
               QTRuntimeException e, Object eGenerator,
               String methodNameIfKnown, boolean unrecoverableFlag) {
-        System.out.println("what should i do?");
+        System.err.println("A Quicktime error has occurred: " + e.getMessage());
+        e.printStackTrace();
       }
     });
   }
@@ -85,7 +82,7 @@ public class CameraGrabberThread extends Thread {
   public int getCameraHeight() {
     return height;
   }
-  
+
   public void enable() {
     running = true;
     start();
@@ -104,7 +101,6 @@ public class CameraGrabberThread extends Thread {
     } catch (QTException e) {
       e.printStackTrace();
     }
-    QTSession.close();
   }
 
   public int[] getPixelData() {

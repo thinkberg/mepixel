@@ -7,24 +7,21 @@ package com.thinkberg.mepixel;
 
 import quicktime.QTException;
 
+import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
-import java.awt.*;
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.lang.reflect.Method;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLClassLoader;
-import java.security.Policy;
-import java.util.Arrays;
-import java.util.List;
-import java.util.ArrayList;
 
-
+/**
+ * MePixel -- a fun application for your webcam. It can display the image using zeros and ones
+ * or just as rectangles (filled or empty) depending on the brightness of a certain area on
+ * screen.
+ *
+ * @author Matthias L. Jugel
+ */
 public class MePixel {
   private static int delay = 20;
   private static boolean fillSwap = true;
@@ -65,7 +62,7 @@ public class MePixel {
     try {
       cameraGrabber.init();
     } catch (QTException e) {
-      System.err.println("Camera grabber failed: "+e.getMessage()+" (no camera found?)");
+      System.err.println("Camera grabber failed: " + e.getMessage() + " (no camera found?)");
       System.err.println("Exiting ...");
       System.exit(-1);
     }
@@ -76,8 +73,8 @@ public class MePixel {
 
     int[] pixelData = cameraGrabber.getPixelData();
 
-    CharDisplay charDisplay = new CharDisplay();
-    charDisplay.addKeyListener(new KeyAdapter() {
+    BufferedDisplay bufferedDisplay = new BufferedDisplay();
+    bufferedDisplay.addKeyListener(new KeyAdapter() {
       public void keyPressed(KeyEvent keyEvent) {
         switch (keyEvent.getKeyCode()) {
           case KeyEvent.VK_UP:
@@ -102,11 +99,11 @@ public class MePixel {
     });
 
     Font font = new Font("Bitstream Vera Sans Mono", Font.PLAIN, fontSize);
-    charDisplay.setFont(font);
-    int charWidth = charDisplay.getFontMetrics(font).charWidth('@');
-    int charHeight = charDisplay.getFontMetrics(font).getHeight();
-    int adaptedScreenHeight = charDisplay.getHeight() / charHeight;
-    int adaptedScreenWidth = charDisplay.getWidth() / charWidth;
+    bufferedDisplay.setFont(font);
+    int charWidth = bufferedDisplay.getFontMetrics(font).charWidth('@');
+    int charHeight = bufferedDisplay.getFontMetrics(font).getHeight();
+    int adaptedScreenHeight = bufferedDisplay.getHeight() / charHeight;
+    int adaptedScreenWidth = bufferedDisplay.getWidth() / charWidth;
     System.out.println("Using a character size of [" + charWidth + "x" + charHeight + "] pixels");
     System.out.println("The screen is divided into [" + adaptedScreenWidth + "x" + adaptedScreenHeight + "] squares");
 
@@ -116,7 +113,7 @@ public class MePixel {
                                                   BufferedImage.TYPE_INT_RGB);
     Graphics2D cachedImageG2D = cachedImage.createGraphics();
     cachedImageG2D.setFont(font);
-    charDisplay.setBackingStore(cachedImage);
+    bufferedDisplay.setBackingStore(cachedImage);
     float[] hsvValues = new float[3];
 
     int rectWidth = cameraWidth / adaptedScreenWidth;
@@ -126,7 +123,7 @@ public class MePixel {
       for (int row = 0; row < cameraHeight; row += rectHeight) {
         int y = (row / rectHeight) * charHeight;
 
-        cachedImageG2D.setColor(charDisplay.getBackground());
+        cachedImageG2D.setColor(bufferedDisplay.getBackground());
         cachedImageG2D.fillRect(0, y, cameraWidth * charWidth, charHeight);
 
         for (int column = 0; column < cameraWidth; column += rectWidth) {
@@ -154,7 +151,7 @@ public class MePixel {
             }
           }
         }
-        charDisplay.repaint();
+        bufferedDisplay.repaint();
         try {
           Thread.sleep(delay);
         } catch (InterruptedException e) {
