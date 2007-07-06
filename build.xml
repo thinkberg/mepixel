@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!--
+  ~ Copyright (c) 2007, Matthias L. Jugel. All Rights Reserved.
+  ~ See http://thinkberg.com/ for details and instructions.
+  -->
+
+<project name="MePixel" default="all">
+
+  <property file="build.properties"/>
+
+  <property name="compiler.debug" value="on"/>
+  <property name="compiler.generate.no.warnings" value="off"/>
+  <property name="compiler.args" value=""/>
+  <property name="compiler.max.memory" value="256m"/>
+  <patternset id="compiler.excluded"/>
+
+  <property name="lib.dir" value="${basedir}/lib"/>
+  <property name="build.dir" value="${basedir}/build"/>
+  <property name="output.dir" value="${basedir}/classes/java"/>
+
+  <property name="source.dir" value="${basedir}/src"/>
+  <property name="source.java" value="${source.dir}/java"/>
+  <property name="resource.dir" value="${source.dir}/resource"/>
+
+  <property name="libs" value="${qtjavamac.jar} ${qtjavawin.jar}"/>
+
+  <path id="classpath">
+    <pathelement location="${lib.dir}/${qtjavamac.jar}"/>
+    <pathelement location="${lib.dir}/${qtjavawin.jar}"/>
+  </path>
+  
+  <path id="sourcepath">
+    <pathelement location="${source.dir}"/>
+  </path>
+
+  <target name="compile-all" depends="compile,compile.tests" description="compile module MePixel"/>
+
+
+  <target name="compile" description="compile DMB Authoring tool">
+    <mkdir dir="${output.dir}"/>
+    <javac destdir="${output.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memoryMaximumSize="${compiler.max.memory}" fork="true">
+      <compilerarg line="${compiler.args}"/>
+      <classpath refid="classpath"/>
+      <src refid="sourcepath"/>
+    </javac>
+  </target>
+  
+  <target name="compile.tests" depends="compile" description="compile module MePixel test classes" unless="skip.tests"/>
+
+  <target name="build-jar" depends="compile" description="build executable jar file" >
+    <mkdir dir="${build.dir}"/>
+    <copy todir="${output.dir}" file="${source.dir}/META-INF/mepixel.manifest"
+      filtering="true" overwrite="true" >
+      <filterset>
+        <filter token="LIBS" value="${libs}"/>
+      </filterset>
+    </copy>
+
+    <jar destfile="${build.dir}/mepixel.jar" manifest="${output.dir}/mepixel.manifest">
+      <fileset dir="${output.dir}">
+        <include name="com/thinkberg/mepixel/**"/>
+      </fileset>
+      <fileset dir="${resource.dir}">
+        <include name="**"/>
+      </fileset>
+    </jar>
+  </target>
+  
+  <!--<target name="launcher" depends="build-jar" description="build single executable launcher">-->
+    <!--<jar destfile="${build.dir}/mepixel.jar"-->
+      <!--manifest="${source.dir}/META-INF/launcher.manifest">-->
+      <!--<fileset dir="${output.dir}" includes="**/launcher/*.class"/>-->
+      <!--<fileset dir="${lib.dir}" includes="${libs}"/>-->
+      <!--<fileset dir="${build.dir}" includes="application.jar"/>-->
+    <!--</jar>-->
+  <!--</target>-->
+ 
+
+  <target name="init" description="Build initialization">
+    <!-- Perform any build initialization in this target -->
+  </target>
+  
+  <target name="clean" description="cleanup all">
+    <delete dir="${output.dir}"/>
+  </target>
+
+
+  <target name="all" depends="init, clean, compile, build-jar" description="build all"/>
+</project>
