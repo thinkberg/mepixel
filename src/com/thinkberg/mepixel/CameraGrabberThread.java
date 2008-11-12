@@ -24,98 +24,98 @@ import quicktime.util.RawEncodedImage;
  *
  * @author Matthias L. Jugel
  */
-public class CameraGrabberThread extends Thread {
-  private boolean running = false;
+class CameraGrabberThread extends Thread {
+    private boolean running = false;
 
-  private SequenceGrabber grabber;
-  private SGVideoChannel channel;
-  private RawEncodedImage rowEncodedImage;
-  private int[] pixelData;
-  private int width, height;
+    private SequenceGrabber grabber;
+    private SGVideoChannel channel;
+    private RawEncodedImage rowEncodedImage;
+    private int[] pixelData;
+    private int width, height;
 
-  public CameraGrabberThread() {
-    super();
-  }
-
-  public void init() throws QTException {
-    QTSession.open();
-
-    grabber = new SequenceGrabber();
-    channel = new SGVideoChannel(grabber);
-
-    width = channel.getSrcVideoBounds().getWidth();
-    height = channel.getSrcVideoBounds().getHeight();
-    QDRect bounds = new QDRect(width, height);
-    QDGraphics graphics;
-    if (quicktime.util.EndianOrder.isNativeLittleEndian()) {
-      graphics = new QDGraphics(QDConstants.k32BGRAPixelFormat, bounds);
-    } else {
-      graphics = new QDGraphics(QDGraphics.kDefaultPixelFormat, bounds);
+    public CameraGrabberThread() {
+        super();
     }
-    grabber.setGWorld(graphics, null);
-    channel.setBounds(bounds);
-    channel.setUsage(StdQTConstants.seqGrabPreview);
-    grabber.prepare(true, false);
 
-    grabber.setDataOutput(null, StdQTConstants.seqGrabDontMakeMovie);
-    grabber.prepare(true, true);
-    grabber.startRecord();
+    public void init() throws QTException {
+        QTSession.open();
 
-    PixMap pixMap = graphics.getPixMap();
-    rowEncodedImage = pixMap.getPixelData();
-    pixelData = new int[width * height];
+        grabber = new SequenceGrabber();
+        channel = new SGVideoChannel(grabber);
 
-    QTRuntimeException.registerHandler(new QTRuntimeHandler() {
-      public void exceptionOccurred(
-              QTRuntimeException e, Object eGenerator,
-              String methodNameIfKnown, boolean unrecoverableFlag) {
-        System.err.println("A Quicktime error has occurred: " + e.getMessage());
-        e.printStackTrace();
-      }
-    });
-  }
+        width = channel.getSrcVideoBounds().getWidth();
+        height = channel.getSrcVideoBounds().getHeight();
+        QDRect bounds = new QDRect(width, height);
+        QDGraphics graphics;
+        if (quicktime.util.EndianOrder.isNativeLittleEndian()) {
+            graphics = new QDGraphics(QDConstants.k32BGRAPixelFormat, bounds);
+        } else {
+            graphics = new QDGraphics(QDGraphics.kDefaultPixelFormat, bounds);
+        }
+        grabber.setGWorld(graphics, null);
+        channel.setBounds(bounds);
+        channel.setUsage(StdQTConstants.seqGrabPreview);
+        grabber.prepare(true, false);
 
-  public int getCameraWidth() {
-    return width;
-  }
+        grabber.setDataOutput(null, StdQTConstants.seqGrabDontMakeMovie);
+        grabber.prepare(true, true);
+        grabber.startRecord();
 
-  public int getCameraHeight() {
-    return height;
-  }
+        PixMap pixMap = graphics.getPixMap();
+        rowEncodedImage = pixMap.getPixelData();
+        pixelData = new int[width * height];
 
-  public void enable() {
-    running = true;
-    start();
-  }
-
-  public void disable() {
-    running = true;
-  }
-
-  public void run() {
-    try {
-      while (running) {
-        grabber.idle();
-        rowEncodedImage.copyToArray(0, pixelData, 0, pixelData.length);
-      }
-    } catch (QTException e) {
-      e.printStackTrace();
+        QTRuntimeException.registerHandler(new QTRuntimeHandler() {
+            public void exceptionOccurred(
+                    QTRuntimeException e, Object eGenerator,
+                    String methodNameIfKnown, boolean unrecoverableFlag) {
+                System.err.println("A Quicktime error has occurred: " + e.getMessage());
+                e.printStackTrace();
+            }
+        });
     }
-  }
 
-  public int[] getPixelData() {
-    return pixelData;
-  }
-
-  public void dispose() {
-    try {
-      grabber.stop();
-      grabber.release();
-      grabber.disposeChannel(channel);
-    } catch (Exception e) {
-      e.printStackTrace();
-    } finally {
-      QTSession.close();
+    public int getCameraWidth() {
+        return width;
     }
-  }
+
+    public int getCameraHeight() {
+        return height;
+    }
+
+    public void enable() {
+        running = true;
+        start();
+    }
+
+    public void disable() {
+        running = true;
+    }
+
+    public void run() {
+        try {
+            while (running) {
+                grabber.idle();
+                rowEncodedImage.copyToArray(0, pixelData, 0, pixelData.length);
+            }
+        } catch (QTException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public int[] getPixelData() {
+        return pixelData;
+    }
+
+    public void dispose() {
+        try {
+            grabber.stop();
+            grabber.release();
+            grabber.disposeChannel(channel);
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            QTSession.close();
+        }
+    }
 }
